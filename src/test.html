@@ -1,0 +1,51 @@
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>2 columns</title>
+    <style>
+    .container {}
+    
+    .col1 {
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 50px;
+        background: #ccc;
+        position: absolute;
+    }
+    
+    .col2 {
+        left: 50px;
+        top: 0;
+        bottom: 0;
+        width: 60px;
+        background: #ddd;
+        position: absolute;
+    }
+    
+    .col3 {
+        z-index: 1000;
+        background: #aaa;
+        top: 0;
+        bottom: 0;
+        right: 0;
+        position: absolute;
+        float: left
+    }
+    
+    .inner {}
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="col1">left</div>
+        <div class="col2">center</div>
+        <div class="col3">
+            <div class="inner">sdfg</div>
+        </div>
+    </div>
+</body>
+
+</html>

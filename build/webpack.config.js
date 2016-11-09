@@ -12,105 +12,129 @@ const __TEST__ = config.globals.__TEST__
 
 debug('Creating configuration.')
 const webpackConfig = {
-  name    : 'client',
-  target  : 'web',
-  devtool : config.compiler_devtool,
-  resolve : {
-    root       : paths.client(),
-    extensions : ['', '.js', '.jsx', '.json']
-  },
-  module : {}
-}
-// ------------------------------------
-// Entry Points
-// ------------------------------------
+        name: 'client',
+        target: 'web',
+        devtool: config.compiler_devtool,
+        resolve: {
+            root: paths.client(),
+            extensions: ['', '.js', '.jsx', '.json'],
+            alias: {
+                'components': paths.client('components')
+            }
+        },
+        module: {}
+    }
+    // ------------------------------------
+    // Entry Points
+    // ------------------------------------
 const APP_ENTRY = paths.client('main.js')
 
 webpackConfig.entry = {
-  app : __DEV__
-    ? [APP_ENTRY].concat(`webpack-hot-middleware/client?path=${config.compiler_public_path}__webpack_hmr`)
-    : [APP_ENTRY],
-  vendor : config.compiler_vendors
+    app: __DEV__ ? [APP_ENTRY].concat(`webpack-hot-middleware/client?path=${config.compiler_public_path}__webpack_hmr`) : [APP_ENTRY],
+    vendor: config.compiler_vendors
 }
 
 // ------------------------------------
 // Bundle Output
 // ------------------------------------
 webpackConfig.output = {
-  filename   : `[name].[${config.compiler_hash_type}].js`,
-  path       : paths.dist(),
-  publicPath : config.compiler_public_path
+    filename: `[name].[hash:6].js`,
+    path: paths.dist(),
+    publicPath: config.compiler_public_path,
+    libraryTarget: "var"
 }
 
 // ------------------------------------
 // Externals
 // ------------------------------------
-webpackConfig.externals = {}
+/*webpackConfig.externals = {}
 webpackConfig.externals['react/lib/ExecutionEnvironment'] = true
 webpackConfig.externals['react/lib/ReactContext'] = true
-webpackConfig.externals['react/addons'] = true
+webpackConfig.externals['react/addons'] = true*/
+webpackConfig.externals = {
+    jquery: 'jQuery',
+    amd: 'jquery',
+    root: 'jquery',
+    commonjs: 'jquery',
+    commonjs2: 'jquery',
+    Raven: 'Raven'
+
+
+}
+
 
 // ------------------------------------
 // Plugins
 // ------------------------------------
 webpackConfig.plugins = [
-  // Plugin to show any webpack warnings and prevent tests from running
-  function () {
-    let errors = []
-    this.plugin('done', function (stats) {
-      if (stats.compilation.errors.length) {
-        // Log each of the warnings
-        stats.compilation.errors.forEach(function (error) {
-          errors.push(error.message || error)
-        })
+    // Plugin to show any webpack warnings and prevent tests from running
+    function() {
+        let errors = []
+        this.plugin('done', function(stats) {
+            if (stats.compilation.errors.length) {
+                // Log each of the warnings
+                stats.compilation.errors.forEach(function(error) {
+                    errors.push(error.message || error)
+                })
 
-        // Pretend no assets were generated. This prevents the tests
-        // from running making it clear that there were warnings.
-        throw new Error(errors)
-      }
+                // Pretend no assets were generated. This prevents the tests
+                // from running making it clear that there were warnings.
+                throw new Error(errors)
+            }
+        })
+    },
+    new webpack.DefinePlugin(config.globals),
+    new HtmlWebpackPlugin({
+        template: paths.client('index.html'),
+        hash: false,
+        // favicon  : paths.client('static/favicon.ico'),
+        filename: 'index.html',
+        inject: 'body',
+        minify: {
+            collapseWhitespace: true
+        }
     })
-  },
-  new webpack.DefinePlugin(config.globals),
-  new HtmlWebpackPlugin({
-    template : paths.client('index.html'),
-    hash     : false,
-    favicon  : paths.client('static/favicon.ico'),
-    filename : 'index.html',
-    inject   : 'body',
-    minify   : {
-      collapseWhitespace : true
-    }
-  })
 ]
+const AddAssetHtmlPlugin = require('add-asset-html-webpack-plugin')
+webpackConfig.plugins.push(new AddAssetHtmlPlugin([{
+    filepath: require.resolve('jquery/dist/jquery.min'),
+    includeSourcemap: false
+}, {
+    filepath:require.resolve('raven-js/dist/raven.min'),
+    includeSourcemap: false
+}]))
+
+const Visualizer = require('webpack-visualizer-plugin')
+webpackConfig.plugins.push(new Visualizer())
 
 if (__DEV__) {
-  debug('Enable plugins for live development (HMR, NoErrors).')
-  webpackConfig.plugins.push(
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoErrorsPlugin()
-  )
+    debug('Enable plugins for live development (HMR, NoErrors).')
+    webpackConfig.plugins.push(
+        new webpack.HotModuleReplacementPlugin(),
+        new webpack.NoErrorsPlugin()
+    )
 } else if (__PROD__) {
-  debug('Enable plugins for production (OccurenceOrder, Dedupe & UglifyJS).')
-  webpackConfig.plugins.push(
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.DedupePlugin(),
-    new webpack.optimize.UglifyJsPlugin({
-      compress : {
-        unused    : true,
-        dead_code : true,
-        warnings  : false
-      }
-    })
-  )
+    debug('Enable plugins for production (OccurenceOrder, Dedupe & UglifyJS).')
+    webpackConfig.plugins.push(
+        new webpack.optimize.OccurrenceOrderPlugin(),
+        new webpack.optimize.DedupePlugin(),
+        new webpack.optimize.UglifyJsPlugin({
+            compress: {
+                unused: true,
+                dead_code: true,
+                warnings: false
+            }
+        })
+    )
 }
 
 // Don't split bundles during testing, since we only want import one bundle
 if (!__TEST__) {
-  webpackConfig.plugins.push(
-    new webpack.optimize.CommonsChunkPlugin({
-      names : ['vendor']
-    })
-  )
+    webpackConfig.plugins.push(
+        new webpack.optimize.CommonsChunkPlugin({
+            names: ['vendor']
+        })
+    )
 }
 
 // ------------------------------------
@@ -118,13 +142,13 @@ if (!__TEST__) {
 // ------------------------------------
 // JavaScript / JSON
 webpackConfig.module.loaders = [{
-  test    : /\.(js|jsx)$/,
-  exclude : /node_modules/,
-  loader  : 'babel',
-  query   : config.compiler_babel
+    test: /\.(js|jsx)$/,
+    exclude: /node_modules/,
+    loader: 'babel',
+    query: config.compiler_babel
 }, {
-  test   : /\.json$/,
-  loader : 'json'
+    test: /\.json$/,
+    loader: 'json'
 }]
 
 // ------------------------------------
@@ -135,59 +159,51 @@ webpackConfig.module.loaders = [{
 const BASE_CSS_LOADER = 'css?sourceMap&-minimize'
 
 webpackConfig.module.loaders.push({
-  test    : /\.scss$/,
-  exclude : null,
-  loaders : [
-    'style',
-    BASE_CSS_LOADER,
-    'postcss',
-    'sass?sourceMap'
-  ]
+    test: /\.scss$/,
+    exclude: null,
+    loaders: [
+        'style',
+        BASE_CSS_LOADER,
+        'postcss',
+        'sass?sourceMap'
+    ]
 })
 webpackConfig.module.loaders.push({
-  test    : /\.css$/,
-  exclude : null,
-  loaders : [
-    'style',
-    BASE_CSS_LOADER,
-    'postcss'
-  ]
+    test: /\.css$/,
+    exclude: null,
+    loaders: [
+        'style',
+        BASE_CSS_LOADER,
+        'postcss'
+    ]
 })
 
 webpackConfig.sassLoader = {
-  includePaths : paths.client('styles')
+    includePaths: paths.client('styles')
 }
 
 webpackConfig.postcss = [
-  cssnano({
-    autoprefixer : {
-      add      : true,
-      remove   : true,
-      browsers : ['last 2 versions']
-    },
-    discardComments : {
-      removeAll : true
-    },
-    discardUnused : false,
-    mergeIdents   : false,
-    reduceIdents  : false,
-    safe          : true,
-    sourcemap     : true
-  })
+    cssnano({
+        autoprefixer: {
+            add: true,
+            remove: true,
+            browsers: ['last 2 versions']
+        },
+        discardComments: {
+            removeAll: true
+        },
+        discardUnused: false,
+        mergeIdents: false,
+        reduceIdents: false,
+        safe: true,
+        sourcemap: true
+    })
 ]
 
 // File loaders
 /* eslint-disable */
-webpackConfig.module.loaders.push(
-  { test: /\.woff(\?.*)?$/,  loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff' },
-  { test: /\.woff2(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff2' },
-  { test: /\.otf(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=font/opentype' },
-  { test: /\.ttf(\?.*)?$/,   loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/octet-stream' },
-  { test: /\.eot(\?.*)?$/,   loader: 'file?prefix=fonts/&name=[path][name].[ext]' },
-  { test: /\.svg(\?.*)?$/,   loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=image/svg+xml' },
-  { test: /\.(png|jpg)$/,    loader: 'url?limit=8192' }
-)
-/* eslint-enable */
+webpackConfig.module.loaders.push({ test: /\.woff(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff' }, { test: /\.woff2(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/font-woff2' }, { test: /\.otf(\?.*)?$/, loader: 'file?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=font/opentype' }, { test: /\.ttf(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=application/octet-stream' }, { test: /\.eot(\?.*)?$/, loader: 'file?prefix=fonts/&name=[path][name].[ext]' }, { test: /\.svg(\?.*)?$/, loader: 'url?prefix=fonts/&name=[path][name].[ext]&limit=10000&mimetype=image/svg+xml' }, { test: /\.(png|jpg)$/, loader: 'url?limit=8192' })
+    /* eslint-enable */
 
 // ------------------------------------
 // Finalize Configuration
@@ -196,21 +212,21 @@ webpackConfig.module.loaders.push(
 // need to use the extractTextPlugin to fix this issue:
 // http://stackoverflow.com/questions/34133808/webpack-ots-parsing-error-loading-fonts/34133809#34133809
 if (!__DEV__) {
-  debug('Apply ExtractTextPlugin to CSS loaders.')
-  webpackConfig.module.loaders.filter((loader) =>
-    loader.loaders && loader.loaders.find((name) => /css/.test(name.split('?')[0]))
-  ).forEach((loader) => {
-    const first = loader.loaders[0]
-    const rest = loader.loaders.slice(1)
-    loader.loader = ExtractTextPlugin.extract(first, rest.join('!'))
-    delete loader.loaders
-  })
-
-  webpackConfig.plugins.push(
-    new ExtractTextPlugin('[name].[contenthash].css', {
-      allChunks : true
+    debug('Apply ExtractTextPlugin to CSS loaders.')
+    webpackConfig.module.loaders.filter((loader) =>
+        loader.loaders && loader.loaders.find((name) => /css/.test(name.split('?')[0]))
+    ).forEach((loader) => {
+        const first = loader.loaders[0]
+        const rest = loader.loaders.slice(1)
+        loader.loader = ExtractTextPlugin.extract(first, rest.join('!'))
+        delete loader.loaders
     })
-  )
+
+    webpackConfig.plugins.push(
+        new ExtractTextPlugin('[name].[contenthash:6].css', {
+            allChunks: true
+        })
+    )
 }
 
 module.exports = webpackConfig

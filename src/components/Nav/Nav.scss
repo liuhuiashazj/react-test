@@ -1,0 +1,12 @@
+.react-resizable{
+	position:relative;
+}
+.react-resizable-handle{
+	position: absolute;
+    width: 5px;
+    top:0;
+    bottom: 0;
+    right: 0;
+    background:#ccc;
+    cursor: resize;
+}

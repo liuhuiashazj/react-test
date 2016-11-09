@@ -35,6 +35,7 @@
         "DEBUG": "app:*"
       }
     },
+    
     "deploy": {
       "command": "npm run lint && npm run test && npm run clean && npm run compile",
       "env": {
@@ -97,6 +98,7 @@
     "node-sass": "^3.7.0",
     "normalize.css": "^5.0.0",
     "postcss-loader": "^1.1.0",
+    "raven-js": "^3.8.0",
     "react": "^15.0.0",
     "react-dom": "^15.0.0",
     "react-redux": "^4.4.5",
@@ -111,6 +113,7 @@
     "yargs": "^6.3.0"
   },
   "devDependencies": {
+    "add-asset-html-webpack-plugin": "^1.0.2",
     "babel-core": "^6.17.0",
     "babel-eslint": "^7.1.0",
     "babel-plugin-istanbul": "^2.0.1",
@@ -139,6 +142,7 @@
     "nodemon": "^1.10.2",
     "phantomjs-prebuilt": "^2.1.12",
     "react-addons-test-utils": "^15.0.0",
+    "react-resizable": "^1.4.5",
     "redbox-react": "^1.2.10",
     "sinon": "^1.17.5",
     "sinon-chai": "^2.8.0",

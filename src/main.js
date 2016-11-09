@@ -2,6 +2,10 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import createStore from './store/createStore'
 import AppContainer from './containers/AppContainer'
+import App from './static/utils.js'
+
+import Raven from 'raven-js'
+Raven.config('https://50830725fe374784a5e76f6a8a96818f@sentry.io/113081').install()
 
 // ========================================================
 // Store Instantiation
@@ -14,9 +18,17 @@ const store = createStore(initialState)
 // ========================================================
 const MOUNT_NODE = document.getElementById('root')
 
+
+try {
+    console.log(absdbaaaaa);
+} catch (ex) {
+    App.Utils.logException(ex);
+}
+
+
+
 let render = () => {
   const routes = require('./routes/index').default(store)
-
   ReactDOM.render(
     <AppContainer store={store} routes={routes} />,
     MOUNT_NODE
